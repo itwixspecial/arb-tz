@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Statuses</title>
+</head>
+<body>
+    <h1>Lead Statuses</h1>
+    <form id="filterForm">
+        <label for="from_date">From:</label>
+        <input type="date" id="from_date" name="from_date">
+        <label for="to_date">To:</label>
+        <input type="date" id="to_date" name="to_date">
+        <button type="submit">Filter</button>
+    </form>
+    <table id="leadTable" border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>FTD</th>
+            </tr>
+        </thead>
+        <tbody id="leadTableBody">
+        </tbody>
+    </table>
+
+    <script>
+        var data; // Оголошення глобальної змінної data
+        var tbody = document.getElementById('leadTableBody');
+
+        function fetchData(from_date, to_date) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var data = JSON.parse(this.responseText);
+                    var tbody = document.getElementById('leadTableBody');
+                    tbody.innerHTML = ''; // Очистити таблицю перед вставкою нових даних
+                    if (data && typeof data === 'object') {
+                        data.data.forEach(function(lead) {
+                            var row = '<tr>' +
+                                '<td>' + lead.id + '</td>' +
+                                '<td>' + lead.email + '</td>' +
+                                '<td>' + lead.status + '</td>' +
+                                '<td>' + lead.ftd + '</td>' +
+                                '</tr>';
+                            tbody.innerHTML += row;
+                        });
+                    } else {
+                        console.error('data is not an array:', data);
+                    }
+                }
+            };
+            xhttp.open("POST", "./GetStatuses.php", true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send("from_date=" + from_date + "&to_date=" + to_date);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchData('2024-01-01 00:00:00', '2025-01-01 23:59:59');
+        });
+
+        document.getElementById('filterForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var from_date = document.getElementById('from_date').value;
+            var to_date = document.getElementById('to_date').value;
+            fetchData(from_date, to_date);
+        });
+
+    </script>
+</body>
+</html>
