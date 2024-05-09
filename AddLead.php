@@ -7,11 +7,28 @@ class AddLead
 
     public function addLead($firstName, $lastName, $phone, $email)
     {
+        $validator = $this->validateInput($firstName, $lastName, $phone, $email);
+
+        if (!$validator['success']) {
+            return json_encode($validator);
+        }
+        
         $data = $this->prepareData($firstName, $lastName, $phone, $email);
 
         $response = $this->sendRequest($data);
 
         return $this->handleResponse($response);
+    }
+
+    private function validateInput($firstName, $lastName, $phone, $email)
+    {
+        return match (true) {
+            empty($firstName) || strlen($firstName) > 255 => ['success' => false, 'message' => 'Invalid first name'],
+            empty($lastName) || strlen($lastName) > 255 => ['success' => false, 'message' => 'Invalid last name'],
+            empty($phone) || strlen($phone) > 255 => ['success' => false, 'message' => 'Invalid phone'],
+            empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL) => ['success' => false, 'message' => 'Invalid email'],
+            default => ['success' => true],
+        };
     }
 
     private function prepareData($firstName, $lastName, $phone, $email)
